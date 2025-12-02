@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Warrior Arena Simulator</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Warrior Arena Simulator</h1>
+        <p>Configure your forces and watch the battle unfold in real time.</p>
+      </div>
+      <div class="status-pill" id="status-pill">Setup</div>
+    </header>
+
+    <main>
+      <section class="controls">
+        <form id="config-form">
+          <div class="control-grid">
+              <label>
+                Circle Skirmishers
+                <input
+                  type="number"
+                  name="circle"
+                  min="0"
+                  max="250"
+                  value="18"
+                />
+              </label>
+              <label>
+                Square Guardians
+                <input
+                  type="number"
+                  name="square"
+                  min="0"
+                  max="250"
+                  value="12"
+                />
+              </label>
+              <label>
+                Triangle Rangers
+                <input
+                  type="number"
+                  name="triangle"
+                  min="0"
+                  max="250"
+                  value="16"
+                />
+              </label>
+            <label class="multiplier">
+              Troop Multiplier
+              <input
+                type="range"
+                id="multiplier"
+                min="1"
+                max="20"
+                step="1"
+                value="1"
+              />
+              <span id="multiplier-value">1×</span>
+            </label>
+          </div>
+          <div class="button-row">
+            <button type="button" id="start-btn">Start Battle</button>
+            <button type="button" id="pause-btn" disabled>Pause</button>
+            <button type="button" id="reset-btn">Reset</button>
+          </div>
+        </form>
+        <p class="hint">
+          Circles are fast melee skirmishers. Squares are slow, durable tanks.
+          Triangles keep their distance and rain down ranged attacks. Use the
+          multiplier to scale every formation at once.
+        </p>
+      </section>
+
+      <section class="arena-section">
+        <section class="troop-counter">
+          <h2>Troop Count</h2>
+          <div class="counter-item circle">
+            <div class="counter-icon circle"></div>
+            <div class="counter-info">
+              <span class="counter-label">Circles</span>
+              <span class="counter-value" data-type="circle">0</span>
+            </div>
+          </div>
+          <div class="counter-item square">
+            <div class="counter-icon square"></div>
+            <div class="counter-info">
+              <span class="counter-label">Squares</span>
+              <span class="counter-value" data-type="square">0</span>
+            </div>
+          </div>
+          <div class="counter-item triangle">
+            <div class="counter-icon triangle"></div>
+            <div class="counter-info">
+              <span class="counter-label">Triangles</span>
+              <span class="counter-value" data-type="triangle">0</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="canvas-wrapper">
+          <canvas
+            id="arena"
+            width="900"
+            height="900"
+            aria-label="Battle arena"
+          ></canvas>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <strong>Tips:</strong> Try asymmetric matchups, or crank the multiplier
+      after selecting a tight composition. You can restart at any time.
+    </footer>
+
+    <script src="main.js" type="module"></script>
+  </body>
+</html>
+
