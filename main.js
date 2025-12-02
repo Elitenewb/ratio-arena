@@ -51,8 +51,8 @@ const TYPE_CONFIG = {
   },
   square: {
     color: "#ffc857",
-    speed: 97,
-    hp: 135,
+    speed: 91,
+    hp: 130,
     damage: 18,
     range: 22,
     cooldown: 1.2,
@@ -78,6 +78,7 @@ let hitEffects = [];
 let running = false;
 let animationFrameId = null;
 let lastTimestamp = 0;
+let winnerType = null; // Store the winner type for victory message
 
 // Audio context for sound effects
 let audioContext = null;
@@ -563,6 +564,20 @@ function drawHitEffects() {
   ctx.restore();
 }
 
+function drawVictoryMessage() {
+  if (!winnerType) return;
+  
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "bold 48px Inter, system-ui, sans-serif";
+  ctx.fillStyle = TYPE_CONFIG[winnerType].color;
+  
+  const typeName = capitalize(winnerType) + (winnerType === "triangle" ? "s" : "s");
+  ctx.fillText(`${typeName} win!`, CENTER.x, CENTER.y);
+  ctx.restore();
+}
+
 function drawWarrior(warrior) {
   ctx.save();
   ctx.translate(warrior.x, warrior.y);
@@ -657,9 +672,11 @@ function determineVictor(aliveCounts) {
   if (livingTypes.length <= 1) {
     if (livingTypes.length === 0) {
       setStatus("All units eliminated", "muted");
+      winnerType = null;
     } else {
       const [type] = livingTypes[0];
       setStatus(`${capitalize(type)} dominate`, type);
+      winnerType = type; // Store winner for victory message
     }
     return true;
   }
@@ -707,6 +724,8 @@ function update(timestamp) {
 
   const aliveCounts = updateStats();
   if (determineVictor(aliveCounts)) {
+    // Draw victory message before stopping
+    drawVictoryMessage();
     stopAnimation();
     return;
   }
@@ -721,6 +740,14 @@ function stopAnimation() {
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId);
     animationFrameId = null;
+  }
+  // Redraw the final frame with victory message if there's a winner
+  if (winnerType) {
+    clearArena();
+    drawProjectiles();
+    warriors.forEach(drawWarrior);
+    drawHitEffects();
+    drawVictoryMessage();
   }
 }
 
@@ -766,6 +793,7 @@ function resetArena() {
   stopAnimation();
   warriors = [];
   projectiles = [];
+  winnerType = null; // Reset winner
   clearArena();
   updateStats();
   pauseBtn.textContent = "Pause";
