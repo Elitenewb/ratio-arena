@@ -468,9 +468,10 @@ function collectCounts() {
   const data = new FormData(form);
   const multiplier = parseFloat(multiplierInput.value);
   const counts = {};
+  const MAX_PER_TYPE = 100; // Maximum warriors per type
   for (const type of Object.keys(TYPE_CONFIG)) {
     const base = Number(data.get(type)) || 0;
-    counts[type] = Math.max(0, Math.round(base * multiplier));
+    counts[type] = Math.min(MAX_PER_TYPE, Math.max(0, Math.round(base * multiplier)));
   }
   return counts;
 }
