@@ -416,16 +416,49 @@ function isPositionValid(x, y, existingWarriors, minDistance) {
 function seedWarriors(counts) {
   warriors = [];
   projectiles = [];
-  const minSpacing = 25; // Minimum distance between warriors when spawning
+  const minSpacing = 30; // Minimum distance between warriors when spawning (increased from 25)
   for (const type of Object.keys(TYPE_CONFIG)) {
     const amount = counts[type] ?? 0;
     for (let i = 0; i < amount; i += 1) {
       let attempts = 0;
       let point;
+      let foundValid = false;
+      
+      // Try to find a valid position
       do {
         point = randomPoint();
         attempts++;
-      } while (!isPositionValid(point.x, point.y, warriors, minSpacing) && attempts < 100);
+        if (isPositionValid(point.x, point.y, warriors, minSpacing)) {
+          foundValid = true;
+        }
+      } while (!foundValid && attempts < 250);
+      
+      // If we couldn't find a valid position after max attempts, add fallback jitter
+      if (!foundValid) {
+        // Apply a small offset based on index to ensure warriors don't spawn at exactly the same spot
+        const angle = (i * 137.5) % 360; // Golden angle for better distribution
+        const offset = (i % 5 + 1) * 3; // 3-15 pixels offset
+        point.x += Math.cos(angle * Math.PI / 180) * offset;
+        point.y += Math.sin(angle * Math.PI / 180) * offset;
+      }
+      
+      // Add tiny random jitter (1-3 pixels) to all positions to prevent exact overlaps
+      const jitterX = (Math.random() - 0.5) * 4;
+      const jitterY = (Math.random() - 0.5) * 4;
+      point.x += jitterX;
+      point.y += jitterY;
+      
+      // Ensure the point is still within arena bounds
+      const dx = point.x - CENTER.x;
+      const dy = point.y - CENTER.y;
+      const dist = Math.hypot(dx, dy);
+      const maxDist = ARENA_RADIUS - 20;
+      if (dist > maxDist) {
+        const scale = maxDist / dist;
+        point.x = CENTER.x + dx * scale;
+        point.y = CENTER.y + dy * scale;
+      }
+      
       warriors.push(new Warrior(type, point.x, point.y));
     }
   }
