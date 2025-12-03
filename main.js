@@ -169,6 +169,7 @@ class Warrior {
       target.takeDamage(this.config.damage);
       this.cooldown = this.config.cooldown;
       spawnHitEffect(target.x, target.y);
+      playHitSound();
 
       // Circles: remember attack direction and trigger brief retreat/sidestep
       if (this.type === "circle") {
@@ -382,6 +383,7 @@ class Projectile {
         enemy.takeDamage(this.damage);
         // Spawn subtle hit effect at impact point
         spawnHitEffect(this.x, this.y);
+        playHitSound();
         this.alive = false;
         break;
       }
@@ -492,6 +494,38 @@ function clearArena() {
   ctx.strokeStyle = "rgba(255,255,255,0.12)";
   ctx.stroke();
   ctx.restore();
+}
+
+function playHitSound() {
+  try {
+    const ctx = getAudioContext();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    // Short, sharp "tck" sound - high frequency, very brief
+    const frequency = 1000 + Math.random() * 200; // 1000-1200 Hz
+    const duration = 0.06; // Very short
+    const attackTime = 0.002; // Instant attack
+    const decayTime = 0.058; // Quick decay
+    
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
+    
+    // Envelope: instant attack, quick decay
+    const now = ctx.currentTime;
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(0.08, now + attackTime); // Subtle volume
+    gainNode.gain.linearRampToValueAtTime(0, now + attackTime + decayTime);
+    
+    oscillator.start(now);
+    oscillator.stop(now + duration);
+  } catch (e) {
+    // Silently fail if audio context creation fails (e.g., user interaction required)
+    console.debug("Audio context not available:", e);
+  }
 }
 
 function playDeathSound(type) {
