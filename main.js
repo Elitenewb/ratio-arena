@@ -4,6 +4,7 @@ const statusPill = document.getElementById("status-pill");
 const form = document.getElementById("config-form");
 const multiplierInput = document.getElementById("multiplier");
 const multiplierValue = document.getElementById("multiplier-value");
+const ratioInputs = form.querySelectorAll('input[type="number"][name]');
 const startBtn = document.getElementById("start-btn");
 const pauseBtn = document.getElementById("pause-btn");
 const resetBtn = document.getElementById("reset-btn");
@@ -71,6 +72,8 @@ const TYPE_CONFIG = {
     label: "Triangles strike from afar.",
   },
 };
+
+const RATIO_LIMITS = { min: 0, max: 50 };
 
 let warriors = [];
 let projectiles = [];
@@ -415,6 +418,14 @@ function isPositionValid(x, y, existingWarriors, minDistance) {
   return true;
 }
 
+function clampRatioValue(rawValue) {
+  const parsed = Number(rawValue);
+  if (Number.isNaN(parsed)) {
+    return RATIO_LIMITS.min;
+  }
+  return Math.min(RATIO_LIMITS.max, Math.max(RATIO_LIMITS.min, parsed));
+}
+
 function seedWarriors(counts) {
   warriors = [];
   projectiles = [];
@@ -470,10 +481,9 @@ function collectCounts() {
   const data = new FormData(form);
   const multiplier = parseFloat(multiplierInput.value);
   const counts = {};
-  const MAX_PER_TYPE = 100; // Maximum warriors per type
   for (const type of Object.keys(TYPE_CONFIG)) {
-    const base = Number(data.get(type)) || 0;
-    counts[type] = Math.min(MAX_PER_TYPE, Math.max(0, Math.round(base * multiplier)));
+    const base = clampRatioValue(data.get(type));
+    counts[type] = Math.round(base * multiplier);
   }
   return counts;
 }
@@ -877,8 +887,23 @@ function handleResize() {
   }
 }
 
+function handleRatioInput(event) {
+  const { target } = event;
+  if (!(target instanceof HTMLInputElement)) return;
+  const clamped = clampRatioValue(target.value);
+  if (Number(target.value) !== clamped) {
+    target.value = clamped;
+  }
+}
+
 multiplierInput.addEventListener("input", () => {
   multiplierValue.textContent = `${Number(multiplierInput.value)}×`;
+});
+
+ratioInputs.forEach((input) => {
+  input.min = RATIO_LIMITS.min;
+  input.max = RATIO_LIMITS.max;
+  input.addEventListener("input", handleRatioInput);
 });
 
 startBtn.addEventListener("click", startBattle);
